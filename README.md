@@ -24,7 +24,7 @@ If you're using Laravel 4, take a look at version 0.3.0 of this package.
 
 This package can be installed through Composer.
 ```bash
-composer require spatie/activitylog
+composer require rejtg21/activitylog
 ```
 
 
