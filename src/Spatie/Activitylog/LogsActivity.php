@@ -13,6 +13,7 @@ trait LogsActivity
             static::$eventName(function (LogsActivityInterface $model) use ($eventName) {
 
                 $message = $model->getActivityDescriptionForEvent($eventName);
+                $data = !EMPTY($model->activityData) ? $model->activityData : [];
 
                 // first array is the message, 2nd is attributes
                 if ($message != '') {
