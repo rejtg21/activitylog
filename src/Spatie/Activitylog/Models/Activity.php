@@ -3,7 +3,6 @@
 namespace Spatie\Activitylog\Models;
 
 use Eloquent;
-use Config;
 use Exception;
 
 class Activity extends Eloquent
@@ -30,7 +29,7 @@ class Activity extends Eloquent
         if (config('activitylog.userModel')) {
             return config('activitylog.userModel');
         }
-        
+
         //laravel 5.0 - 5.1
         if (! is_null(config('auth.model'))) {
             return config('auth.model');

@@ -7,6 +7,14 @@ use Carbon\Carbon;
 
 class EloquentHandler implements ActivitylogHandlerInterface
 {
+    protected $model;
+
+    public function __construct()
+    {
+        // identify what model to be used
+        $this->model = config('activitylog.modelPath') ?: 'Activity';
+    }
+
     /**
      * Log activity in an Eloquent model.
      *
@@ -16,17 +24,20 @@ class EloquentHandler implements ActivitylogHandlerInterface
      *
      * @return bool
      */
-    public function log($text, $userId = '', $attributes = [])
+    public function log($data)
     {
-        Activity::create(
-            [
-                'text' => $text,
-                'user_id' => ($userId == '' ? null : $userId),
-                'ip_address' => $attributes['ipAddress'],
-            ]
-        );
+        $model = $this->model;
+        return \DB::transaction(function() use ($data, $model){
 
-        return true;
+            $activity = $model::create([
+                'user_id' => $data->user_id,
+                'text' => $data->text,
+                'ip_address' => $data->ip_address
+            ]);
+            // add the activity to data
+            $data->activity = $activity;
+            return $this->_shouldLogAfter($data);
+        });
     }
 
     /**
@@ -38,9 +49,19 @@ class EloquentHandler implements ActivitylogHandlerInterface
      */
     public function cleanLog($maxAgeInMonths)
     {
+        $model = $this->model;
+
         $minimumDate = Carbon::now()->subMonths($maxAgeInMonths);
-        Activity::where('created_at', '<=', $minimumDate)->delete();
+        $model::where('created_at', '<=', $minimumDate)->delete();
 
         return true;
+    }
+
+    private function _shouldLogAfter($data)
+    {
+        $afterHandler = config('activitylog.afterHandler');
+        if(EMPTY($afterHandler)) return $data;
+
+        return app($afterHandler)->shouldLogAfter($data);
     }
 }

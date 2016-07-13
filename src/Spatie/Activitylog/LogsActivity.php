@@ -6,6 +6,7 @@ use Activity;
 
 trait LogsActivity
 {
+
     protected static function bootLogsActivity()
     {
         foreach (static::getRecordActivityEvents() as $eventName) {
@@ -13,8 +14,9 @@ trait LogsActivity
 
                 $message = $model->getActivityDescriptionForEvent($eventName);
 
+                // first array is the message, 2nd is attributes
                 if ($message != '') {
-                    Activity::log($message);
+                    Activity::log($message, $data);
                 }
             });
         }

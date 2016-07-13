@@ -2,6 +2,10 @@
 
 All Notable changes to `activitylog` will be documented in this file
 
+### 2.4.4 - 2016-07-13
+- Added `afterHandler` and `modelPath` configuration
+- change some flow in the activity 
+
 ### 2.4.3 - 2016-06-29
 - mark package as abandoned
 
@@ -22,7 +26,7 @@ All Notable changes to `activitylog` will be documented in this file
 
 ### 2.1.3
 - Renamed migration stub
- 
+
 ### 2.1.1
 - Only use configured default user id if it is numeric
 

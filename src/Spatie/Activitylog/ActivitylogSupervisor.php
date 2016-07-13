@@ -32,7 +32,9 @@ class ActivitylogSupervisor
     {
         $this->config = $config;
 
-        $this->logHandlers[] = $logHandler;
+        // this handler is the one saving to db
+        // added key for data to be pass by reference
+        $this->logHandlers['activity'] = $logHandler;
 
         if ($this->config->get('activitylog.alsoLogInDefaultLog')) {
             $this->logHandlers[] = new DefaultLaravelHandler();
@@ -45,25 +47,31 @@ class ActivitylogSupervisor
      * Log some activity to all registered log handlers.
      *
      * @param $text
-     * @param string $userId
+     * @param array/object $data - additional data to be sent handlers
      *
      * @return bool
      */
-    public function log($text, $userId = '')
+    public function log($text, $data = array())
     {
-        $userId = $this->normalizeUserId($userId);
+        // there is no catcher here expected to be catch on one of the handler
+        // convert the data to object if its an array
+        $data = (object) $data;
+        $data->user_id = !EMPTY($data->user_id) ? $data->user_id : '';
 
-        if (! $this->shouldLogCall($text, $userId)) {
+        $data->user_id = $this->normalizeUserId($data);
+        $data->text = $text;
+
+        if (! $this->shouldLogCall($data)) {
             return false;
         }
 
-        $ipAddress = Request::getClientIp();
+        $data->ip_address = Request::getClientIp();
 
         foreach ($this->logHandlers as $logHandler) {
-            $logHandler->log($text, $userId, compact('ipAddress'));
+            $logHandler->log($data);
         }
-
-        return true;
+        
+        return $data->activity;
     }
 
     /**
@@ -89,12 +97,9 @@ class ActivitylogSupervisor
      */
     public function normalizeUserId($userId)
     {
+
         if (is_numeric($userId)) {
             return $userId;
-        }
-
-        if (is_object($userId)) {
-            return $userId->id;
         }
 
         if ($this->auth->check()) {
@@ -116,7 +121,7 @@ class ActivitylogSupervisor
      *
      * @return bool
      */
-    protected function shouldLogCall($text, $userId)
+    protected function shouldLogCall($data)
     {
         $beforeHandler = $this->config->get('activitylog.beforeHandler');
 
@@ -124,6 +129,6 @@ class ActivitylogSupervisor
             return true;
         }
 
-        return app($beforeHandler)->shouldLog($text, $userId);
+        return app($beforeHandler)->shouldLog($data);
     }
 }

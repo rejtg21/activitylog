@@ -7,13 +7,12 @@ interface ActivitylogHandlerInterface
     /**
      * Log some activity.
      *
-     * @param string $text
-     * @param string $user
-     * @param array  $attributes
+     * @param $text
+     * @param array/object $data - additional data to be sent handlers
      *
      * @return bool
      */
-    public function log($text, $user = '', $attributes = []);
+    public function log($data);
 
     /**
      * Clean old log records.

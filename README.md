@@ -63,7 +63,6 @@ php artisan vendor:publish --provider="Spatie\Activitylog\ActivitylogServiceProv
 ```
 The configuration will be written to  ```config/activitylog.php```. The options provided are self explanatory.
 
-
 ## Usage
 
 ### Manual logging
@@ -135,7 +134,7 @@ If you want to disable logging under certain conditions,
 such as for a specific user, create a class in your application
 namespace that implements the `Spatie\Activitylog\Handlers\BeforeHandlerInterface`.
 
-This  interface defines an `shouldLog()` method in which you can code any custom logic to determine
+This  interface defines an `shouldLog($data)` method in which you can code any custom logic to determine
 whether logging should be ignored or not. You must return `true` the call should be logged.
 
 To en the namespaced class nameto the `beforeHandler` field in the configuration file:
@@ -154,13 +153,148 @@ use Spatie\Activitylog\Handlers\BeforeHandlerInterface;
 
 class BeforeHandler implements BeforeHandlerInterface
 {
-    public function shouldLog($text, $userId)
+    public function shouldLog($data)
 	{
-		if ($userId == 1) return false;
+		if ($data->user_id == 1) return false;
 
 		return true;
 	}
 }
+```
+
+### Using the after handler.
+If you want to do something after the activity has been saved like for example
+saving also in another table, create a class that implements
+`Spatie\Activitylog\Handlers\AfterHandlerInterface`.
+
+this interface defines a function `shouldLogAfter($data)` which you can create a
+your own function that will be triggered after saving the activity. Be sure to
+return the data received from parameter.
+
+Be sure to specify the namespaced class in the configuration file
+
+```php
+'afterHandler' => 'App\Http\Controllers\ActivityController',
+```
+
+For example,
+```php
+<?php namespace App\Http\Controllers
+
+use Spatie\Activitylog\Handlers\AfterHandlerInterface;
+
+class ActivityController extends Controller implements AfterHandlerInterface
+{
+
+    public function shouldLogAfter($data)
+    {
+      // logic here
+      return $data;
+    }
+}
+```
+
+You can also add data to be passed in function specified in the interface in its
+second parameter it accepts array of data to carried to the function as object.
+
+For example using afterHandler specified above,
+
+using first the Activity::log();
+
+```php
+
+  $data = [
+    'partner_id' => 1
+  ];
+
+  Activity::log('successfully logged', $data);
+```
+it will be catch like this,
+
+```php
+public function shouldLogAfter($data)
+{
+  $data->partner_id;
+  // other logic here
+  return $data;
+}
+```
+
+And if you want to retreive the activity, that have been inserted, in the
+`shouldLogAfter` function, you can by using `$data->activity`
+
+For example,
+```php
+  public function shouldLogAfter($data)
+  {
+    $data->activity->id;
+    $data->activity->ip_address;
+    // model explanation below
+    $data->activity->partner()->attach($data->partner_id);
+  }
+```
+*Note: the model used in `shouldLogAfter()` function is the default or
+specified model in configuration. More info about this below.*
+
+if using Activity::log() just assign it in the variable
+
+```php
+  $activity = Activity::log('successfully logged');
+
+  /**
+  * you can already access the object
+  */
+  $activty->text;
+  $activity->id;
+```
+
+Using the trait in model if you want to add data to be passed in the function.
+It goes like this.
+
+```php
+  // declare first the variable activityData
+  public $activtyData = [];
+  ...
+
+  public function getActivityDescriptionForEvent($eventName)
+    {
+      // insert some data
+        $this->activityData = [
+            'partner_id' => $this->id,
+        ];
+
+        if($eventName == 'created')
+            return 'successfully created';
+    }
+
+```
+
+### Use your own activity model or Extending Spatie Activity Model
+If you want to specify spatie to use your own model instead of default model
+you can specify it in configuration file
+
+```php
+  'modelPath' => 'App\Models\Activity'
+```
+
+By specifying this you informed spatie that it will use your model throughout
+the library. But if you only want to extend the model of spatie and add only
+other functions you still can, just extend the spatie model
+
+```php
+  <?php namespace App\Models
+
+  use Spatie\Activitylog\Models\Activity as Spatie;
+  class Activity extends Spatie
+  {
+      public function partner()
+      {
+          return $this->belongsToMany('App\Models\User', 'user_activities',
+                'activity_id', 'user_id');
+      }
+
+     //add other functions here ....
+  }
 ```
 
 ### Retrieving logged entries

@@ -15,11 +15,16 @@ class DefaultLaravelHandler implements ActivitylogHandlerInterface
      *
      * @return bool
      */
-    public function log($text, $userId = '', $attributes = [])
+    public function log($data)
     {
-        $logText = $text;
+        // temporary
+        $userId = $data->user_id;
+        unset($data->user_id);
+        $logText = $data->text;
+        unset($data->text);
+
         $logText .= ($userId != '' ? ' (by user_id '.$userId.')' : '');
-        $logText .= (count($attributes)) ? PHP_EOL.print_r($attributes, true) : '';
+        // $logText .= (count($data)) ? PHP_EOL.print_r($data, true) : '';
 
         Log::info($logText);
 

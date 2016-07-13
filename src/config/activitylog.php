@@ -46,15 +46,40 @@ return [
     |
     */
     'beforeHandler' => null,
-    
+
+    /*
+    |--------------------------------------------------------------------------
+    | Handler that is called after adding activity is done
+    |--------------------------------------------------------------------------
+    |
+    | If you want to add functions to be done after logging, create
+    | a handler class that implements the AfterHandlerInterface and
+    | reference it here.
+    |
+    */
+    'afterHandler' => null,
+
     /*
     |--------------------------------------------------------------------------
     | The class name for the related user model
     |--------------------------------------------------------------------------
     |
-    | This can be a class name or null. If null the model will be determined 
+    | This can be a class name or null. If null the model will be determined
     | from Laravel's auth configuration.
     |
     */
     'userModel' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | The activity model to be used
+    |--------------------------------------------------------------------------
+    |
+    | If you want to extend the activity model, specify here the namespace of
+    | activity model to be used. If null the model will be determined from
+    | Spatie's default model.
+    | (e.g. 'modelPath' => 'App\Models\Activity')
+    |
+    */
+    'modelPath' => null,
 ];

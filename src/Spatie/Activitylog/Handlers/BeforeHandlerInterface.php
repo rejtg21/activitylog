@@ -12,5 +12,5 @@ interface BeforeHandlerInterface
      *
      * @return bool
      */
-    public function shouldLog($text, $userId);
+    public function shouldLog($data);
 }
