@@ -2,9 +2,12 @@
 
 All Notable changes to `activitylog` will be documented in this file
 
+### 2.4.5 - 2016-07-13
+- fix require issue
+
 ### 2.4.4 - 2016-07-13
 - Added `afterHandler` and `modelPath` configuration
-- change some flow in the activity 
+- change some flow in the activity
 
 ### 2.4.3 - 2016-06-29
 - mark package as abandoned
